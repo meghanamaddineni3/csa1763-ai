@@ -1,0 +1,76 @@
+from queue import PriorityQueue
+
+# Define a class for A* algorithm
+class AStarAlgorithm:
+    def __init__(self, graph, heuristic):
+        self.graph = graph           # The graph is represented as an adjacency list
+        self.heuristic = heuristic   # The heuristic function (estimated cost to reach the goal)
+
+    def a_star(self, start, goal):
+        open_list = PriorityQueue()  # Priority queue to select node with the lowest f = g + h
+        open_list.put((0, start))    # (priority, node)
+        
+        g_costs = {start: 0}         # g(n): Cost from start to node n
+        came_from = {start: None}    # To reconstruct the path
+        
+        while not open_list.empty():
+            _, current_node = open_list.get()
+
+            # If we have reached the goal, reconstruct the path
+            if current_node == goal:
+                return self.reconstruct_path(came_from, current_node)
+
+            # Explore neighbors
+            for neighbor, cost in self.graph[current_node].items():
+                tentative_g_cost = g_costs[current_node] + cost
+
+                if neighbor not in g_costs or tentative_g_cost < g_costs[neighbor]:
+                    g_costs[neighbor] = tentative_g_cost
+                    f_cost = tentative_g_cost + self.heuristic[neighbor]
+                    open_list.put((f_cost, neighbor))
+                    came_from[neighbor] = current_node
+
+        return None  # Return None if there's no path
+
+    def reconstruct_path(self, came_from, current_node):
+        path = []
+        while current_node is not None:
+            path.append(current_node)
+            current_node = came_from[current_node]
+        path.reverse()  # Reverse the path to get from start to goal
+        return path
+
+# Example usage of A* algorithm
+if __name__ == "__main__":
+    # Graph as adjacency list with weights
+    graph = {
+        'A': {'B': 1, 'C': 4},
+        'B': {'A': 1, 'D': 2, 'E': 5},
+        'C': {'A': 4, 'F': 7},
+        'D': {'B': 2, 'E': 1},
+        'E': {'B': 5, 'D': 1, 'G': 3},
+        'F': {'C': 7, 'G': 1},
+        'G': {'E': 3, 'F': 1}
+    }
+
+    # Heuristic values (Manhattan distances or any other heuristic)
+    heuristic = {
+        'A': 7,
+        'B': 6,
+        'C': 2,
+        'D': 3,
+        'E': 1,
+        'F': 0,
+        'G': 1
+    }
+
+    a_star = AStarAlgorithm(graph, heuristic)
+
+    start = 'A'
+    goal = 'F'
+    path = a_star.a_star(start, goal)
+
+    if path:
+        print(f"Path from {start} to {goal}: {path}")
+    else:
+        print("No path found.")
