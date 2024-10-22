@@ -1,0 +1,36 @@
+import heapq
+
+def astar(start, goal):
+    def manhattan(s, g): return sum(abs(s.index(i) % 3 - g.index(i) % 3) + abs(s.index(i) // 3 - g.index(i) // 3) for i in range(1, 9))
+    def neighbors(s):
+        i = s.index(0)
+        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        for dx, dy in moves:
+            x, y = divmod(i, 3)
+            if 0 <= x + dx < 3 and 0 <= y + dy < 3:
+                new_s = s[:]
+                j = (x + dx) * 3 + (y + dy)
+                new_s[i], new_s[j] = new_s[j], new_s[i]
+                yield new_s
+
+    pq, visited = [(manhattan(start, goal), 0, start, [])], set()
+    while pq:
+        _, cost, state, path = heapq.heappop(pq)
+        if state == goal: return path + [state]
+        visited.add(tuple(state))
+        for neighbor in neighbors(state):
+            if tuple(neighbor) not in visited:
+                heapq.heappush(pq, (cost + 1 + manhattan(neighbor, goal), cost + 1, neighbor, path + [state]))
+    return None
+
+def print_solution(solution):
+    for state in solution:
+        for i in range(0, 9, 3): print(state[i:i+3])
+        print()
+
+# Example usage
+start = [1, 2, 3, 4, 0, 5, 6, 7, 8]
+goal = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+solution = astar(start, goal)
+if solution: print_solution(solution)
+else: print("No solution.")
